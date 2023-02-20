@@ -1,5 +1,5 @@
 #include <SDL.h>
-
+#include <memory>
 
 // SDL Window and Surface for pixel manipulation
 SDL_Window *window = NULL;
@@ -17,6 +17,16 @@ unsigned int SCREEN_WIDTH = CELLMAP_WIDTH * CELL_SIZE;
 unsigned int SCREEN_HEIGHT = CELLMAP_HEIGHT * CELL_SIZE;
 
 
+class CellMap {
+    public:
+        CellMap(unsigned int width, unsigned int height);
+        ~CellMap();
+    private:
+        unsigned char *cells;
+        unsigned char *temp_cells;
+        unsigned int w, h;
+        unsigned length;
+};
 
 void DrawCell(unsigned int x, unsigned int y, unsigned int colour) {
     Uint8* pixel_ptr =  (Uint8*)surface->pixels + (y * CELL_SIZE * SCREEN_WIDTH + x * CELL_SIZE) * 4;
@@ -30,6 +40,13 @@ void DrawCell(unsigned int x, unsigned int y, unsigned int colour) {
 
         pixel_ptr += SCREEN_WIDTH * 4;
     }
+}
+
+CellMap::CellMap(unsigned int width, unsigned int height): w(width), h(height){
+    length = w*h;
+    cells = new unsigned char[length];
+    temp_cells = new unsigned char[length];
+    memset(cells, 0, length);
 }
 
 int main(int argc, char * argv[]) {
