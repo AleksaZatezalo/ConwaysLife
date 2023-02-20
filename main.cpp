@@ -24,6 +24,7 @@ class CellMap {
         void SetCell(unsigned int x, unsigned int y);
         void ClearCell(unsigned int x, unsigned int y);
         void Init();
+        int CellState(unsigned int x, unsigned int y);
     private:
         unsigned char *cells;
         unsigned char *temp_cells;
@@ -124,6 +125,12 @@ void CellMap::ClearCell(unsigned int x, unsigned int y) {
 
 }
 
+int CellMap::CellState(unsigned int x, unsigned int y) {
+    unsigned char *cell_ptr = cells + (y*w) + x;
+
+    return *cell_ptr & 0x01;
+}
+
 void CellMap::Init() {
     unsigned int seed = (unsigned)time(NULL);
 
@@ -134,7 +141,9 @@ void CellMap::Init() {
     for (int i = 0; i < length * 0.5; i++) {
         x = rand() % (w-1);
         y = rand() % (h-1);
-        SetCell(x, y);
+
+        if (!CellState(x, y))
+            SetCell(x, y);
     }
 }
 
@@ -147,6 +156,9 @@ int main(int argc, char * argv[]) {
     surface = SDL_GetWindowSurface(window);
     // SDL Event Handler
     SDL_Event e;
+
+    CellMap map(CELLMAP_WIDTH, CELLMAP_HEIGHT);
+    map.Init();
 
     // Rendering Loop
     bool quit = false;
