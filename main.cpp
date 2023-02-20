@@ -21,6 +21,9 @@ class CellMap {
     public:
         CellMap(unsigned int width, unsigned int height);
         ~CellMap();
+        void SetCell(unsigned int x, unsigned int y);
+        void ClearCell(unsigned int x, unsigned int y);
+        void Init();
     private:
         unsigned char *cells;
         unsigned char *temp_cells;
@@ -47,6 +50,92 @@ CellMap::CellMap(unsigned int width, unsigned int height): w(width), h(height){
     cells = new unsigned char[length];
     temp_cells = new unsigned char[length];
     memset(cells, 0, length);
+}
+
+CellMap::~CellMap(){
+    delete[] cells;
+    delete[] temp_cells;
+}
+
+void CellMap::SetCell(unsigned int x, unsigned int y) {
+    unsigned char *cell_ptr = cells + (y*w + x);
+    int xleft, xright, yabove, ybelow;
+
+    *(cell_ptr) |= 0x01; // Set the first bit as 1, 'on'
+
+    if (x==0)
+        xleft = w -1;
+    else
+        xleft = -1;
+    if (x== (w-1))
+        xright = -(w-1);
+    else
+        xright = 1;
+    if (y==0)
+        yabove = length -w;
+    else
+        yabove = -w;
+    if (y==(h-1))
+        ybelow = -(length -w );
+    else
+        ybelow = w;
+
+    *(cell_ptr + yabove + xleft) += 0x02;
+    *(cell_ptr + yabove) += 0x02;
+    *(cell_ptr + yabove + xright) += 0x02;
+    *(cell_ptr + xleft) += 0x02;
+    *(cell_ptr + xright) += 0x02;
+    *(cell_ptr + ybelow + xleft) += 0x02;
+    *(cell_ptr + ybelow) += 0x02;
+    *(cell_ptr + ybelow + xright) += 0x02;
+}
+
+void CellMap::ClearCell(unsigned int x, unsigned int y) {
+    unsigned char *cell_ptr = cells + (y*w + x);
+    int xleft, xright, yabove, ybelow;
+
+    *(cell_ptr) &= ~0x01; // Set the first bit as 0, 'off'
+
+    if (x==0)
+        xleft = w -1;
+    else
+        xleft = -1;
+    if (x== (w-1))
+        xright = -(w-1);
+    else
+        xright = 1;
+    if (y==0)
+        yabove = length -w;
+    else
+        yabove = -w;
+    if (y==(h-1))
+        ybelow = -(length -w );
+    else
+        ybelow = w;
+
+    *(cell_ptr + yabove + xleft) -= 0x02;
+    *(cell_ptr + yabove) -= 0x02;
+    *(cell_ptr + yabove + xright) -= 0x02;
+    *(cell_ptr + xleft) -= 0x02;
+    *(cell_ptr + xright) -= 0x02;
+    *(cell_ptr + ybelow + xleft) -= 0x02;
+    *(cell_ptr + ybelow) -= 0x02;
+    *(cell_ptr + ybelow + xright) -= 0x02;
+
+}
+
+void CellMap::Init() {
+    unsigned int seed = (unsigned)time(NULL);
+
+    srand(seed);
+
+    unsigned int x, y;
+
+    for (int i = 0; i < length * 0.5; i++) {
+        x = rand() % (w-1);
+        y = rand() % (h-1);
+        SetCell(x, y);
+    }
 }
 
 int main(int argc, char * argv[]) {
