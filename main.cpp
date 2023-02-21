@@ -1,5 +1,6 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <memory>
+#include <ctime>
 
 // SDL Window and Surface for pixel manipulation
 SDL_Window *window = NULL;
@@ -8,9 +9,9 @@ SDL_Surface *surface = NULL;
 
 
 // Width and height of cell size in pixels
-unsigned int CELL_SIZE = 1;
-unsigned  CELLMAP_WIDTH = 200;
-unsigned CELLMAP_HEIGHT = 200; 
+unsigned int CELL_SIZE =4;
+unsigned  CELLMAP_WIDTH = 100;
+unsigned CELLMAP_HEIGHT = 100; 
 
 // Screen length and width
 unsigned int SCREEN_WIDTH = CELLMAP_WIDTH * CELL_SIZE;
@@ -25,6 +26,7 @@ class CellMap {
         void ClearCell(unsigned int x, unsigned int y);
         void Init();
         int CellState(unsigned int x, unsigned int y);
+        void NextGen();
     private:
         unsigned char *cells;
         unsigned char *temp_cells;
@@ -145,6 +147,47 @@ void CellMap::Init() {
         if (!CellState(x, y))
             SetCell(x, y);
     }
+
+}
+
+void CellMap::NextGen() {
+    unsigned int x, y, live_neighbours;
+    unsigned char* cell_ptr;
+
+    memcpy(temp_cells, cells, length);
+
+    cell_ptr = temp_cells;
+
+    for (int y=0; y < h; y++){
+        x = 0;
+        do {
+            // Skipping
+            while (*cell_ptr == 0) {
+                cell_ptr++;
+
+                if (++x >= w) goto NextRow;
+
+            }
+
+            live_neighbours = *cell_ptr >> 1;
+            if (*cell_ptr & 0x01) {
+                if ((live_neighbours != 2) && (live_neighbours != 3)){
+                    ClearCell(x, y);
+                    DrawCell(x, y, 0x00);
+                } else {
+                    if (live_neighbours == 3) {
+                        SetCell(x, y);
+                        DrawCell(x, y, 0xFF);
+                    }
+                }
+
+            }
+
+            cell_ptr++;
+        } while(++x < w);
+    NextRow:;
+
+    }
 }
 
 int main(int argc, char * argv[]) {
@@ -165,9 +208,10 @@ int main(int argc, char * argv[]) {
     while (!quit){
         while (SDL_PollEvent(&e) != 0)
             if (e.type == SDL_QUIT) quit == true;
-
+        map.NextGen();
         // Update frame buffer
         SDL_UpdateWindowSurface(window);
+        SDL_Delay(1000);
     }
 
     // Clean up SDL
